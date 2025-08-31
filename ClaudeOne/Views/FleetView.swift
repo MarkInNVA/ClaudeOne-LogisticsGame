@@ -92,9 +92,12 @@ struct VehicleRow: View {
                     )
             }
             
-            if vehicle.currentLoad > 0 {
-                ProgressView(value: Double(vehicle.currentLoad), total: Double(vehicle.capacity))
-                    .tint(statusColor)
+            if vehicle.currentLoad > 0 && vehicle.capacity > 0 {
+                let progressValue = min(max(Double(vehicle.currentLoad), 0), Double(vehicle.capacity))
+                let isOverCapacity = vehicle.currentLoad > vehicle.capacity
+                
+                ProgressView(value: progressValue, total: Double(vehicle.capacity))
+                    .tint(isOverCapacity ? .red : statusColor)
             }
         }
         .padding(.vertical, 8)

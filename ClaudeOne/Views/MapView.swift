@@ -23,6 +23,7 @@ struct MapView: View {
                             x: vehicle.location.x * geometry.size.width,
                             y: vehicle.location.y * geometry.size.height
                         )
+                        .animation(.easeInOut(duration: 0.5), value: vehicle.location.x + vehicle.location.y)
                 }
                 
                 ForEach(gameState.orders) { order in
@@ -84,14 +85,28 @@ struct VehicleMarker: View {
     }
     
     var body: some View {
-        Image(systemName: vehicleIcon)
-            .foregroundColor(vehicleColor)
-            .font(.title3)
-            .background(
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: 24, height: 24)
-            )
+        ZStack {
+            Circle()
+                .fill(Color.white)
+                .frame(width: 30, height: 30)
+                .shadow(color: .black.opacity(0.2), radius: 2, x: 0, y: 1)
+            
+            Circle()
+                .stroke(vehicleColor, lineWidth: 2)
+                .frame(width: 30, height: 30)
+            
+            Image(systemName: vehicleIcon)
+                .foregroundColor(vehicleColor)
+                .font(.system(size: 14, weight: .bold))
+        }
+        .scaleEffect(isEnRoute ? 1.1 : 1.0)
+    }
+    
+    private var isEnRoute: Bool {
+        if case .enRoute = vehicle.status {
+            return true
+        }
+        return false
     }
 }
 

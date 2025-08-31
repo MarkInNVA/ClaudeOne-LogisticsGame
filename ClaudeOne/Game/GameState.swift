@@ -52,13 +52,20 @@ class GameState: ObservableObject {
         case .orderPlaced(let order):
             orders.append(order)
             
-        case .orderFulfilled(let order):
-            if let index = orders.firstIndex(where: { $0.id == order.id }) {
-                orders.remove(at: index)
-                completedOrders.append(order)
-                budget += order.value
-                score += Int(order.value / 10)
+        case .vehicleDispatched(_, let route):
+            // Remove assigned orders from available orders list
+            for order in route.orders {
+                if let index = orders.firstIndex(where: { $0.id == order.id }) {
+                    orders.remove(at: index)
+                }
             }
+            
+        case .orderFulfilled(let order):
+            // Order should already be removed from orders list when vehicle was dispatched
+            // Just add to completed orders and update budget/score
+            completedOrders.append(order)
+            budget += order.value
+            score += Int(order.value / 10)
             
         case .budgetChanged(let newBudget):
             budget = newBudget
@@ -87,5 +94,21 @@ class GameState: ObservableObject {
             location: mainWarehouse.location
         )
         vehicles.append(truck)
+        
+        let van = Vehicle(
+            type: .van,
+            capacity: 200,
+            speed: 80.0,
+            location: Location(x: 0.3, y: 0.7)
+        )
+        vehicles.append(van)
+        
+        let drone = Vehicle(
+            type: .drone,
+            capacity: 50,
+            speed: 120.0,
+            location: Location(x: 0.7, y: 0.3)
+        )
+        vehicles.append(drone)
     }
 }

@@ -18,7 +18,7 @@ class GameEngine: ObservableObject {
         self.gameState = gameState
         self.orderManager = OrderManager(eventBus: eventBus)
         self.warehouseManager = WarehouseManager(eventBus: eventBus)
-        self.vehicleManager = VehicleManager(eventBus: eventBus)
+        self.vehicleManager = VehicleManager(eventBus: eventBus, gameState: gameState)
         
         setupEventHandling()
         initializeGame()
@@ -109,7 +109,7 @@ class GameEngine: ObservableObject {
     
     private func calculateOperatingCosts() -> Double {
         let warehouseCosts = warehouseManager.warehouses.reduce(0) { $0 + $1.operatingCost }
-        let vehicleCosts = vehicleManager.vehicles.reduce(0) { total, vehicle in
+        let vehicleCosts = gameState.vehicles.reduce(0) { total, vehicle in
             total + vehicle.type.operatingCost
         }
         
@@ -117,6 +117,11 @@ class GameEngine: ObservableObject {
     }
     
     private func tryAutoAssignOrder(_ order: Order) {
+        // Check if order is still available (not already assigned)
+        guard gameState.orders.contains(where: { $0.id == order.id }) else {
+            return // Order already assigned
+        }
+        
         guard let sourceWarehouse = warehouseManager.allocateInventory(for: order) else {
             return
         }
@@ -190,9 +195,7 @@ class GameEngine: ObservableObject {
             }
         }
         
-        for vehicle in gameState.vehicles {
-            vehicleManager.addVehicle(vehicle)
-        }
+        // Vehicles are already initialized in GameState, no need to add them again
     }
     
     deinit {
