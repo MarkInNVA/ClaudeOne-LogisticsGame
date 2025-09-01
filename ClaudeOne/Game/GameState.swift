@@ -65,7 +65,10 @@ class GameState: ObservableObject {
             // Just add to completed orders and update budget/score
             completedOrders.append(order)
             budget += order.value
-            score += Int(order.value / 10)
+            let scoreIncrease = Int(order.value / 10)
+            score += scoreIncrease
+            // Publish score increase for feedback
+            eventBus.publish(LogisticsEvent.scoreIncreased(by: scoreIncrease, total: score))
             
         case .budgetChanged(let newBudget):
             budget = newBudget

@@ -9,6 +9,9 @@ class GameEngine: ObservableObject {
     private let orderManager: OrderManager
     private let warehouseManager: WarehouseManager
     private let vehicleManager: VehicleManager
+    private let feedbackManager: FeedbackManager
+    private let achievementManager: AchievementManager
+    private let weatherManager: WeatherManager
     
     private var cancellables = Set<AnyCancellable>()
     private var gameTimer: Timer?
@@ -18,7 +21,10 @@ class GameEngine: ObservableObject {
         self.gameState = gameState
         self.orderManager = OrderManager(eventBus: eventBus)
         self.warehouseManager = WarehouseManager(eventBus: eventBus)
-        self.vehicleManager = VehicleManager(eventBus: eventBus, gameState: gameState)
+        self.weatherManager = WeatherManager()
+        self.vehicleManager = VehicleManager(eventBus: eventBus, gameState: gameState, weatherManager: weatherManager)
+        self.feedbackManager = FeedbackManager(eventBus: eventBus)
+        self.achievementManager = AchievementManager(eventBus: eventBus, gameState: gameState)
         
         setupEventHandling()
         initializeGame()
@@ -58,6 +64,7 @@ class GameEngine: ObservableObject {
     
     private func startGame() {
         isRunning = true
+        weatherManager.startWeatherSystem()
         startGameLoop()
     }
     
@@ -69,6 +76,7 @@ class GameEngine: ObservableObject {
     
     private func endGame() {
         isRunning = false
+        weatherManager.stopWeatherSystem()
         gameTimer?.invalidate()
         gameTimer = nil
     }
@@ -196,6 +204,22 @@ class GameEngine: ObservableObject {
         }
         
         // Vehicles are already initialized in GameState, no need to add them again
+    }
+    
+    var feedback: FeedbackManager {
+        return feedbackManager
+    }
+    
+    var achievements: AchievementManager {
+        return achievementManager
+    }
+    
+    var weather: WeatherManager {
+        return weatherManager
+    }
+    
+    func tryAutoAssign(_ order: Order) {
+        tryAutoAssignOrder(order)
     }
     
     deinit {

@@ -9,9 +9,13 @@ class VehicleManager: ObservableObject {
     // Reference to shared game state vehicles
     private weak var gameState: GameState?
     
-    init(eventBus: EventBus, gameState: GameState) {
+    // Weather manager reference for applying weather effects
+    private weak var weatherManager: WeatherManager?
+    
+    init(eventBus: EventBus, gameState: GameState, weatherManager: WeatherManager? = nil) {
         self.eventBus = eventBus
         self.gameState = gameState
+        self.weatherManager = weatherManager
         setupEventHandling()
     }
     
@@ -69,7 +73,9 @@ class VehicleManager: ObservableObject {
             gameState.objectWillChange.send()
         }
         
-        let travelTime = route.estimatedDuration
+        let baseTravelTime = route.estimatedDuration
+        let weatherMultiplier = weatherManager?.currentWeather.speedMultiplier ?? 1.0
+        let travelTime = baseTravelTime / weatherMultiplier
         let startLocation = vehicle.location
         guard let destination = route.waypoints.last else { return }
         
@@ -95,6 +101,9 @@ class VehicleManager: ObservableObject {
         // Get route BEFORE changing status to idle
         if case .enRoute(let route) = gameState?.vehicles[vehicleIndex].status {
             for order in route.orders {
+                // Publish delivery success for feedback
+                eventBus.publish(LogisticsEvent.deliverySuccessful(order, at: location))
+                // Then publish order fulfilled for game logic
                 eventBus.publish(LogisticsEvent.orderFulfilled(order))
             }
         }

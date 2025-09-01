@@ -2,6 +2,7 @@ import SwiftUI
 
 struct MapView: View {
     @EnvironmentObject var gameState: GameState
+    @EnvironmentObject var gameEngine: GameEngine
     
     var body: some View {
         GeometryReader { geometry in
@@ -33,6 +34,12 @@ struct MapView: View {
                             y: order.destination.y * geometry.size.height
                         )
                 }
+                
+                // Feedback overlay for visual effects
+                FeedbackOverlay(feedbackManager: gameEngine.feedback, geometry: geometry)
+                
+                // Weather overlay
+                WeatherOverlay(weatherManager: gameEngine.weather)
             }
         }
         .background(Color.systemGray6)

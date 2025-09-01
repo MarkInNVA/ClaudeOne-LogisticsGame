@@ -96,8 +96,77 @@ struct VehicleRow: View {
                 let progressValue = min(max(Double(vehicle.currentLoad), 0), Double(vehicle.capacity))
                 let isOverCapacity = vehicle.currentLoad > vehicle.capacity
                 
-                ProgressView(value: progressValue, total: Double(vehicle.capacity))
-                    .tint(isOverCapacity ? .red : statusColor)
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Text("Load:")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                        Spacer()
+                        Text("\(vehicle.currentLoad)/\(vehicle.capacity)")
+                            .font(.caption2)
+                            .fontWeight(.medium)
+                    }
+                    
+                    ProgressView(value: progressValue, total: Double(vehicle.capacity))
+                        .tint(isOverCapacity ? .red : statusColor)
+                }
+            }
+            
+            // Route Progress for en route vehicles
+            if case .enRoute(let route) = vehicle.status {
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Text("Route Progress:")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                        Spacer()
+                        Text("In Transit")
+                            .font(.caption2)
+                            .fontWeight(.medium)
+                            .foregroundColor(.orange)
+                    }
+                    
+                    HStack {
+                        Text("Distance:")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                        Text(String(format: "%.1f km", route.totalDistance))
+                            .font(.caption2)
+                            .fontWeight(.medium)
+                        
+                        Spacer()
+                        
+                        Text("Orders:")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                        Text("\(route.orders.count)")
+                            .font(.caption2)
+                            .fontWeight(.medium)
+                    }
+                    
+                    HStack {
+                        Text("Est. Duration:")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                        Text(String(format: "%.0f min", route.estimatedDuration / 60))
+                            .font(.caption2)
+                            .fontWeight(.medium)
+                        
+                        Spacer()
+                        
+                        Text("Value:")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                        Text("$\(Int(route.totalValue))")
+                            .font(.caption2)
+                            .fontWeight(.medium)
+                            .foregroundColor(.green)
+                    }
+                    
+                    // Route progress bar (simulated progress)
+                    ProgressView(value: 0.3, total: 1.0)
+                        .tint(.orange)
+                }
             }
         }
         .padding(.vertical, 8)

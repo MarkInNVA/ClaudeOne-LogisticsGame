@@ -224,6 +224,7 @@ struct VehicleSelectionSheet: View {
             .navigationBarHidden(true)
 #endif
         }
+        .frame(width:800, height: 600)   
     }
     
     private var priorityColor: Color {

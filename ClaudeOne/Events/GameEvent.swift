@@ -12,6 +12,7 @@ enum LogisticsEvent: GameEvent {
     case orderPlaced(Order)
     case orderFulfilled(Order)
     case orderDelayed(Order)
+    case deliverySuccessful(Order, at: Location)
     
     case vehicleDispatched(Vehicle, route: Route)
     case vehicleArrived(Vehicle, at: Location)
@@ -22,6 +23,7 @@ enum LogisticsEvent: GameEvent {
     
     case budgetChanged(Double)
     case performanceUpdated(PerformanceMetrics)
+    case scoreIncreased(by: Int, total: Int)
     
     var timestamp: Date {
         Date()

@@ -47,6 +47,8 @@ struct MenuView: View {
 }
 
 struct GameplayView: View {
+    @EnvironmentObject var gameEngine: GameEngine
+    
     var body: some View {
         VStack(spacing: 0) {
             DashboardView()
@@ -79,6 +81,10 @@ struct GameplayView: View {
                 .frame(width: 300)
             }
         }
+        .overlay(
+            // Achievement overlay on top of the game
+            AchievementOverlay(achievementManager: gameEngine.achievements)
+        )
     }
 }
 
