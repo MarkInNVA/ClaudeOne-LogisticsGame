@@ -10,6 +10,8 @@ struct LogisticsGameView: View {
                 switch gameState.status {
                 case .menu:
                     MenuView()
+                case .tutorial:
+                    TutorialGameplayView()
                 case .playing:
                     GameplayView()
                 case .paused:
@@ -25,6 +27,7 @@ struct LogisticsGameView: View {
 
 struct MenuView: View {
     @EnvironmentObject var eventBus: EventBus
+    @EnvironmentObject var gameState: GameState
     
     var body: some View {
         VStack(spacing: 30) {
@@ -36,55 +39,128 @@ struct MenuView: View {
                 .font(.headline)
                 .foregroundColor(.secondary)
             
-            Button("Start Game") {
-                eventBus.publish(LogisticsEvent.gameStarted)
+            if gameState.levelSystem != nil {
+                LevelProgressIndicator(playerLevel: gameState.levelSystem.currentLevel)
+                    .padding(.horizontal, 40)
             }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.large)
+            
+            VStack(spacing: 15) {
+                Button("Start Game") {
+                    eventBus.publish(LogisticsEvent.gameStarted)
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                
+                if UserDefaults.standard.bool(forKey: "tutorial_completed") {
+                    Button("Restart Tutorial") {
+                        gameState.tutorialSystem?.resetTutorial()
+                        eventBus.publish(LogisticsEvent.gameStarted)
+                    }
+                    .buttonStyle(.bordered)
+                }
+            }
         }
         .padding()
     }
 }
 
-struct GameplayView: View {
+struct TutorialGameplayView: View {
     @EnvironmentObject var gameEngine: GameEngine
+    @EnvironmentObject var gameState: GameState
     
     var body: some View {
-        VStack(spacing: 0) {
-            DashboardView()
-                .frame(height: 120)
-            
-            Divider()
-            
-            HStack(spacing: 0) {
-                VStack {
-                    MapView()
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    
-                    Divider()
-                    
-                    ControlsView()
-                        .frame(height: 100)
-                }
+        ZStack {
+            VStack(spacing: 0) {
+                DashboardView()
+                    .frame(height: 120)
                 
                 Divider()
                 
-                VStack {
-                    OrdersView()
-                        .frame(maxHeight: .infinity)
+                HStack(spacing: 0) {
+                    VStack {
+                        MapView()
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        
+                        Divider()
+                        
+                        ControlsView()
+                            .frame(height: 100)
+                    }
                     
                     Divider()
                     
-                    FleetView()
-                        .frame(maxHeight: .infinity)
+                    VStack {
+                        OrdersView()
+                            .frame(maxHeight: .infinity)
+                        
+                        Divider()
+                        
+                        FleetView()
+                            .frame(maxHeight: .infinity)
+                    }
+                    .frame(width: 300)
                 }
-                .frame(width: 300)
+            }
+            
+            if let tutorialSystem = gameState.tutorialSystem {
+                TutorialOverlay(tutorialSystem: tutorialSystem)
             }
         }
-        .overlay(
-            // Achievement overlay on top of the game
+    }
+}
+
+struct GameplayView: View {
+    @EnvironmentObject var gameEngine: GameEngine
+    @EnvironmentObject var gameState: GameState
+    
+    var body: some View {
+        ZStack {
+            VStack(spacing: 0) {
+                DashboardView()
+                    .frame(height: 120)
+                
+                Divider()
+                
+                HStack(spacing: 0) {
+                    VStack {
+                        MapView()
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        
+                        Divider()
+                        
+                        ControlsView()
+                            .frame(height: 100)
+                    }
+                    
+                    Divider()
+                    
+                    VStack {
+                        OrdersView()
+                            .frame(maxHeight: .infinity)
+                        
+                        Divider()
+                        
+                        FleetView()
+                            .frame(maxHeight: .infinity)
+                    }
+                    .frame(width: 300)
+                }
+            }
+            
+            // Achievement overlay
             AchievementOverlay(achievementManager: gameEngine.achievements)
-        )
+            
+            // Level up notification overlay
+            if let levelSystem = gameState.levelSystem,
+               let levelUpNotification = levelSystem.showLevelUpNotification {
+                Color.black.opacity(0.4)
+                    .ignoresSafeArea()
+                
+                LevelUpNotification(levelRequirements: levelUpNotification) {
+                    levelSystem.showLevelUpNotification = nil
+                }
+            }
+        }
     }
 }
 

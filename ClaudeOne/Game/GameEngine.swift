@@ -204,6 +204,24 @@ class GameEngine: ObservableObject {
         }
         
         // Vehicles are already initialized in GameState, no need to add them again
+        
+        // Create initial tutorial order if tutorial is active
+        if gameState.status == .tutorial && !UserDefaults.standard.bool(forKey: "tutorial_completed") {
+            createTutorialOrder()
+        }
+    }
+    
+    private func createTutorialOrder() {
+        let tutorialOrder = Order(
+            product: Product.electronics,
+            quantity: 1,
+            destination: Location(x: 0.8, y: 0.2),
+            priority: .standard,
+            placedAt: Date(),
+            deadline: Date().addingTimeInterval(300) // 5 minutes
+        )
+        
+        eventBus.publish(LogisticsEvent.orderPlaced(tutorialOrder))
     }
     
     var feedback: FeedbackManager {

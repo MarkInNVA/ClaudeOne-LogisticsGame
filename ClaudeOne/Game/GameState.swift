@@ -3,6 +3,7 @@ import Combine
 
 enum GameStatus {
     case menu
+    case tutorial
     case playing
     case paused
     case gameOver
@@ -22,6 +23,10 @@ class GameState: ObservableObject {
     
     @Published var performanceMetrics = PerformanceMetrics()
     
+    // Tutorial and Level Systems
+    @Published var tutorialSystem: TutorialSystem!
+    @Published var levelSystem: LevelSystem!
+    
     private var cancellables = Set<AnyCancellable>()
     private let eventBus: EventBus
     
@@ -29,6 +34,7 @@ class GameState: ObservableObject {
         self.eventBus = eventBus
         setupEventHandling()
         initializeStartingState()
+        initializeSystems()
     }
     
     private func setupEventHandling() {
@@ -36,12 +42,26 @@ class GameState: ObservableObject {
             self?.handleEvent(event)
         }
         .store(in: &cancellables)
+        
+        eventBus.subscribe(to: TutorialEvent.self) { [weak self] event in
+            self?.handleTutorialEvent(event)
+        }
+        .store(in: &cancellables)
+        
+        eventBus.subscribe(to: LevelEvent.self) { [weak self] event in
+            self?.handleLevelEvent(event)
+        }
+        .store(in: &cancellables)
     }
     
     private func handleEvent(_ event: LogisticsEvent) {
         switch event {
         case .gameStarted:
-            status = .playing
+            if !UserDefaults.standard.bool(forKey: "tutorial_completed") {
+                status = .tutorial
+            } else {
+                status = .playing
+            }
             
         case .gamePaused:
             status = .paused
@@ -113,5 +133,33 @@ class GameState: ObservableObject {
             location: Location(x: 0.7, y: 0.3)
         )
         vehicles.append(drone)
+    }
+    
+    private func initializeSystems() {
+        tutorialSystem = TutorialSystem(eventBus: eventBus, gameState: self)
+        levelSystem = LevelSystem(eventBus: eventBus)
+    }
+    
+    private func handleTutorialEvent(_ event: TutorialEvent) {
+        switch event {
+        case .started:
+            status = .tutorial
+            
+        case .completed:
+            status = .playing
+            
+        case .stepChanged(_):
+            break
+        }
+    }
+    
+    private func handleLevelEvent(_ event: LevelEvent) {
+        switch event {
+        case .experienceGained(_):
+            break
+            
+        case .levelUp(let newLevel):
+            level = newLevel
+        }
     }
 }

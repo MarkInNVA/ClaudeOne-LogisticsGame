@@ -9,7 +9,7 @@ class EventBus: ObservableObject {
     }
     
     func publish(_ event: GameEvent) {
-        print("🎯 Event: \(event)")
+//        print("🎯 Event: \(event)")
         eventSubject.send(event)
     }
     

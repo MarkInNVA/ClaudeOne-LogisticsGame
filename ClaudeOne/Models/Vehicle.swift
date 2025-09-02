@@ -28,6 +28,14 @@ enum VehicleType: CaseIterable, Codable {
         case .drone: return 2.0
         }
     }
+    
+    var displayName: String {
+        switch self {
+        case .van: return "Van"
+        case .truck: return "Truck"
+        case .drone: return "Drone"
+        }
+    }
 }
 
 enum VehicleStatus: Codable {

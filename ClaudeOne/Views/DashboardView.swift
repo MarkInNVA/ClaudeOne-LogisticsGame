@@ -6,6 +6,9 @@ struct DashboardView: View {
     
     var body: some View {
         HStack {
+            if let levelSystem = gameState.levelSystem {
+                LevelMetricCard(playerLevel: levelSystem.currentLevel)
+            }
             MetricCard(title: "Budget", value: String(format: "$%.0f", gameState.budget), color: .green)
             MetricCard(title: "Score", value: "\(gameState.score)", color: .blue)
             MetricCard(title: "Active Orders", value: "\(gameState.orders.count)", color: .orange)
@@ -69,6 +72,50 @@ struct WeatherMetricCard: View {
         .background(
             RoundedRectangle(cornerRadius: 8)
                 .fill(weatherManager.currentWeather.color.opacity(0.1))
+        )
+    }
+}
+
+struct LevelMetricCard: View {
+    let playerLevel: PlayerLevel
+    
+    var body: some View {
+        VStack(spacing: 4) {
+            HStack(spacing: 4) {
+                Image(systemName: "star.fill")
+                    .font(.caption)
+                    .foregroundColor(.yellow)
+                
+                Text("Level")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            
+            HStack(spacing: 4) {
+                Text("\(playerLevel.level)")
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.yellow)
+                
+                if !playerLevel.isMaxLevel {
+                    Text("(\(playerLevel.experienceToNext))")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
+            }
+            
+            if !playerLevel.isMaxLevel {
+                ProgressView(value: playerLevel.progressToNext)
+                    .progressViewStyle(.linear)
+                    .scaleEffect(y: 0.5)
+                    .tint(.yellow)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 8)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(Color.yellow.opacity(0.1))
         )
     }
 }
